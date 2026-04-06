@@ -9,6 +9,8 @@ import os
 app = Flask(__name__)
 app.secret_key = 'hjuy_secret_2026'
 
+DB_PATH = '/tmp/hjuy_chatbot.db' if os.environ.get('VERCEL') else 'hjuy_chatbot.db'
+
 # Google OAuth 설정
 oauth = OAuth(app)
 google = oauth.register(
@@ -21,7 +23,7 @@ google = oauth.register(
 
 # 데이터베이스 초기화
 def init_db():
-    conn = sqlite3.connect('hjuy_chatbot.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
@@ -44,7 +46,7 @@ responses = [
 ]
 
 def get_user_id(username):
-    conn = sqlite3.connect('hjuy_chatbot.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT id FROM users WHERE username=?', (username,))
     result = c.fetchone()
@@ -52,7 +54,7 @@ def get_user_id(username):
     return result[0] if result else None
 
 def save_conversation(user_id, message, reply):
-    conn = sqlite3.connect('hjuy_chatbot.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     c.execute('INSERT INTO conversations (user_id, message, reply, timestamp) VALUES (?, ?, ?, ?)',
@@ -61,7 +63,7 @@ def save_conversation(user_id, message, reply):
     conn.close()
 
 def get_user_conversations(user_id):
-    conn = sqlite3.connect('hjuy_chatbot.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('SELECT message, reply, timestamp FROM conversations WHERE user_id=? ORDER BY timestamp DESC LIMIT 50',
               (user_id,))
@@ -187,7 +189,7 @@ def login():
         username = data.get('username')
         password = data.get('password')
         
-        conn = sqlite3.connect('hjuy_chatbot.db')
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute('SELECT id, password FROM users WHERE username=?', (username,))
         result = c.fetchone()
@@ -294,7 +296,7 @@ def register():
             return jsonify(success=False, error='사용자명은 3자 이상, 비밀번호는 4자 이상이어야 합니다.')
         
         hashed_password = generate_password_hash(password)
-        conn = sqlite3.connect('hjuy_chatbot.db')
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         try:
             c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, hashed_password))
@@ -556,7 +558,7 @@ def google_callback():
         name = user_info.get('name', email.split('@')[0])
         
         # 이메일로 사용자 확인
-        conn = sqlite3.connect('hjuy_chatbot.db')
+        conn = sqlite3.connect(DB_PATH)
         c = conn.cursor()
         c.execute('SELECT id FROM users WHERE username=?', (email,))
         user = c.fetchone()
