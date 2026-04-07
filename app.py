@@ -90,7 +90,7 @@ def get_bot_reply(user_input):
         from datetime import datetime
         now = datetime.now()
         return f'현재 시간은 {now.hour:02d}:{now.minute:02d} 입니다.'
-    elif '에쿠보' in user_input
+    elif '에쿠보' in user_input:
     return '에쿠보는 귀엽고 강한 케릭터 랍니다!'
     elif any(word in user_input for word in ['귀여워', '멋지다', '잘했어', '최고야', '대단해', '멋져']) and '!' in user_input:
         compliments = ['감사합니다! 😊', '부끄러워요~', '칭찬 감사해요!', '더 열심히 할게요!', '기분 좋네요!']
